@@ -1,0 +1,121 @@
+<div class="container" style="font-family: Courier New, monospace; font-size: 13px; color: #111; padding: 12px;">
+	<style>
+		.section-title {
+			font-weight: 700;
+			text-transform: uppercase;
+			text-align: center;
+			margin: 8px 0;
+		}
+		.header-line {
+			border-top: 2px solid #000;
+			margin: 6px 0 12px 0;
+		}
+		.small-label {
+			font-size: 12px;
+			font-weight: 400;
+		}
+		.box-table {
+			border: 1px solid #c00;
+			border-collapse: collapse;
+			margin-top: 6px;
+			width: auto;
+		}
+		.box-table th, .box-table td {
+			border: 1px solid #c00;
+			padding: 3px 6px;
+		}
+		.box-table th {
+			text-align: left;
+		}
+		.em-block {
+			margin-bottom: 24px;
+			page-break-inside: avoid;
+		}
+	</style>
+
+	{% 
+		var month_label = "";
+		if (filters.from_date) {
+			var d = new Date(filters.from_date);
+			month_label = d.toLocaleString("default", { month: "long", year: "numeric" });
+		} else {
+			var d2 = new Date();
+			month_label = d2.toLocaleString("default", { month: "long", year: "numeric" });
+		}
+	%}
+
+	{% for (var r = 0; r < data.length; r++) { %}
+		{% var row = data[r]; %}
+		<div class="em-block">
+			<div class="small-label">
+				{{ __("Salary Month") }} : {{ month_label }}
+			</div>
+			<div class="small-label">
+				{{ __("Pers No.") }}: {{ row.employee || "" }}
+			</div>
+			<div class="small-label">
+				{{ __("Name") }}: <strong>{{ row.employee_name || "" }}</strong>
+			</div>
+			<div class="small-label">
+				{{ __("Bank A/c no.") }}: {{ row.bank_account_no || "" }}
+			</div>
+
+			<div style="display: flex; gap: 12px; margin-top: 10px;">
+				<div>
+					<table class="box-table">
+						<thead>
+							<tr><th>{{ __("Earning") }}</th><th>{{ __("Amt") }}</th></tr>
+						</thead>
+						<tbody>
+							{% for (var i = 0; i < (row.earnings || []).length; i++) { %}
+								{% var item = row.earnings[i]; %}
+								<tr>
+									<td>{{ __(item.label) }}</td>
+									<td style="text-align:right;">{{ fmt_money(item.amount || 0, null, 2) }}</td>
+								</tr>
+							{% } %}
+							<tr>
+								<td><strong>{{ __("Gross Earning") }}</strong></td>
+								<td style="text-align:right;"><strong>{{ fmt_money(row.gross_pay || 0, null, 2) }}</strong></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+
+				<div>
+					<table class="box-table">
+						<thead>
+							<tr><th>{{ __("Deduction") }}</th><th>{{ __("Amt") }}</th></tr>
+						</thead>
+						<tbody>
+							{% for (var i = 0; i < (row.deductions || []).length; i++) { %}
+								{% var item = row.deductions[i]; %}
+								<tr>
+									<td>{{ __(item.label) }}</td>
+									<td style="text-align:right;">{{ fmt_money(item.amount || 0, null, 2) }}</td>
+								</tr>
+							{% } %}
+							<tr>
+								<td><strong>{{ __("Total Deduction") }}</strong></td>
+								<td style="text-align:right;"><strong>{{ fmt_money(row.total_deduction || 0, null, 2) }}</strong></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+
+			<div style="margin-top: 14px; font-weight: 700;">
+				{{ __("Net salary Rs.") }} {{ fmt_money(row.net_pay || 0, null, 2) }}
+			</div>
+
+			<div class="section-title" style="margin-top: 18px;">
+				{{ filters.company || "" }}
+			</div>
+
+			<div style="margin-top: 24px;">
+				{{ __("Authorised signatory") }}
+			</div>
+		</div>
+	{% } %}
+</div>
+

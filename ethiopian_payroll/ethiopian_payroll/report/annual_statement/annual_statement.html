@@ -1,0 +1,291 @@
+<div class="annual-statement-print" style="font-size: 9px; color: #111; padding: 8px 12px; line-height: 1.4;">
+	<style>
+		.annual-statement-print {
+			font-family: "Helvetica", "Arial", sans-serif;
+		}
+		.annual-statement-header {
+			text-align: center;
+			margin-bottom: 12px;
+		}
+		.annual-statement-header .company {
+			text-transform: uppercase;
+			font-size: 16px;
+			font-weight: 700;
+			margin-bottom: 4px;
+		}
+		.annual-statement-header .title {
+			font-size: 14px;
+			font-weight: 700;
+			margin-bottom: 2px;
+		}
+		.annual-statement-header .employee-info {
+			font-size: 11px;
+			margin-top: 4px;
+		}
+		.earnings-section, .savings-section {
+			margin-bottom: 20px;
+		}
+		.section-title {
+			font-size: 12px;
+			font-weight: 700;
+			margin-bottom: 8px;
+			text-align: center;
+		}
+		.annual-statement-table {
+			width: 100%;
+			border-collapse: collapse;
+			table-layout: auto;
+			margin-bottom: 15px;
+		}
+		.annual-statement-table th,
+		.annual-statement-table td {
+			border: 1px solid #a5a5a5;
+			padding: 4px 6px;
+			font-size: 8px;
+			vertical-align: middle;
+			text-align: center;
+			word-break: break-word;
+		}
+		.annual-statement-table th {
+			background: #f5f5f5;
+			font-weight: 600;
+			white-space: nowrap;
+		}
+		.annual-statement-table td.text-right {
+			text-align: right;
+		}
+		.annual-statement-table td.text-left {
+			text-align: left;
+		}
+		.summary-section {
+			margin-top: 20px;
+		}
+		.summary-container {
+			border: 2px solid #333;
+			padding: 10px;
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 12px;
+		}
+		.summary-field {
+			display: flex;
+			align-items: center;
+			justify-content: flex-end;
+			gap: 8px;
+			margin-bottom: 8px;
+		}
+		.summary-label {
+			font-weight: 600;
+			font-size: 10px;
+			white-space: nowrap;
+			text-align: right;
+		}
+		.summary-value {
+			border: 2px solid #000;
+			padding: 4px 8px;
+			width: 150px;
+			text-align: right;
+			font-size: 10px;
+			font-weight: 700;
+			color: #d32f2f;
+		}
+		.employee-spacer {
+			height: 30px;
+			margin-bottom: 20px;
+		}
+	</style>
+
+	<div class="annual-statement-header">
+		<div class="company">{{ filters.company || __("Company") }}</div>
+		<div class="title">{{ __("Earning/Saving/Itax statement") }}</div>
+	</div>
+
+	{% var visible_columns = []; %}
+	{% for (var c = 0; c < columns.length; c++) { %}
+		{% var col = columns[c]; %}
+		{% if (!col.hidden && col._id !== "_check" && col.fieldname !== "employee" && col.fieldname !== "employee_name") { %}
+			{% visible_columns.push(col); %}
+		{% } %}
+	{% } %}
+
+	{% for (var r = 0; r < data.length; r++) { %}
+		{% var row = data[r]; %}
+		
+		<!-- Employee Header -->
+		<div style="margin-bottom: 10px; font-weight: 700; font-size: 12px;">
+			{{ __("Personnel No.") }}: {{ row.employee || "" }} - {{ row.employee_name || "" }}
+		</div>
+		
+		<!-- Earnings Section -->
+		<div class="earnings-section" style="margin-bottom: 20px;">
+			<div class="section-title">{{ __("Earning(Salary)") }}</div>
+			<div style="border: 2px solid #333; padding: 10px;">
+				<table class="annual-statement-table">
+				<thead>
+					<tr>
+						<th style="width: 120px;">{{ __("Heads") }}</th>
+						{% var month_cols = row._months_keys || []; %}
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<th>{{ month_cols[m] }}</th>
+						{% } %}
+						<th>{{ __("Total") }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="text-left"><strong>{{ __("Basic") }}</strong></td>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<td class="text-right">{{ (row["basic_" + month_cols[m]] || 0).toFixed(2) }}</td>
+						{% } %}
+						<td class="text-right"><strong>{{ (row.total_basic || 0).toFixed(2) }}</strong></td>
+					</tr>
+					<tr>
+						<td class="text-left"><strong>{{ __("DA") }}</strong></td>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<td class="text-right">{{ (row["da_" + month_cols[m]] || 0).toFixed(2) }}</td>
+						{% } %}
+						<td class="text-right"><strong>{{ (row.total_da || 0).toFixed(2) }}</strong></td>
+					</tr>
+					<tr>
+						<td class="text-left"><strong>{{ __("FixAll") }}</strong></td>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<td class="text-right">{{ (row["fixall_" + month_cols[m]] || 0).toFixed(2) }}</td>
+						{% } %}
+						<td class="text-right"><strong>{{ (row.total_fixall || 0).toFixed(2) }}</strong></td>
+					</tr>
+					<tr>
+						<td class="text-left"><strong>{{ __("TA") }}</strong></td>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<td class="text-right">{{ (row["ta_" + month_cols[m]] || 0).toFixed(2) }}</td>
+						{% } %}
+						<td class="text-right"><strong>{{ (row.total_ta || 0).toFixed(2) }}</strong></td>
+					</tr>
+					<tr>
+						<td class="text-left"><strong>{{ __("sHrent") }}</strong></td>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<td class="text-right">{{ (row["house_rent_" + month_cols[m]] || 0).toFixed(2) }}</td>
+						{% } %}
+						<td class="text-right"><strong>{{ (row.total_house_rent || 0).toFixed(2) }}</strong></td>
+					</tr>
+					<tr>
+						<td class="text-left"><strong>{{ __("Total") }}</strong></td>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<td class="text-right"><strong>{{ (row["total_" + month_cols[m]] || 0).toFixed(2) }}</strong></td>
+						{% } %}
+						<td class="text-right"><strong>{{ (row.total_earnings || 0).toFixed(2) }}</strong></td>
+					</tr>
+				</tbody>
+			</table>
+			<div style="margin-top: 10px; display: flex; gap: 20px;">
+				<div class="summary-field">
+					<span class="summary-label">{{ __("Less Std dedn:") }}</span>
+					<span class="summary-value">{{ (row.less_std_dedn || 0).toFixed(2) }}</span>
+				</div>
+				<div class="summary-field">
+					<span class="summary-label">{{ __("IncomeSal head") }}</span>
+					<span class="summary-value">{{ (row.income_sal_head || 0).toFixed(2) }}</span>
+				</div>
+			</div>
+			</div>
+		</div>
+
+		<!-- Savings Section -->
+		<div class="savings-section" style="margin-bottom: 20px;">
+			<div class="section-title">{{ __("Saving sec 88") }}</div>
+			<div style="border: 2px solid #333; padding: 10px;">
+				<table class="annual-statement-table">
+				<thead>
+					<tr>
+						<th style="width: 120px;">{{ __("Heads") }}</th>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<th>{{ month_cols[m] }}</th>
+						{% } %}
+						<th>{{ __("Total") }}</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td class="text-left"><strong>{{ __("Grinsur") }}</strong></td>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<td class="text-right">{{ (row["grinsur_" + month_cols[m]] || 0).toFixed(2) }}</td>
+						{% } %}
+						<td class="text-right"><strong>{{ (row.total_grinsur || 0).toFixed(2) }}</strong></td>
+					</tr>
+					<tr>
+						<td class="text-left"><strong>{{ __("LIC") }}</strong></td>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<td class="text-right">{{ (row["lic_" + month_cols[m]] || 0).toFixed(2) }}</td>
+						{% } %}
+						<td class="text-right"><strong>{{ (row.total_lic || 0).toFixed(2) }}</strong></td>
+					</tr>
+					<tr>
+						<td class="text-left"><strong>{{ __("MPF") }}</strong></td>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<td class="text-right">{{ (row["mpf_" + month_cols[m]] || 0).toFixed(2) }}</td>
+						{% } %}
+						<td class="text-right"><strong>{{ (row.total_mpf || 0).toFixed(2) }}</strong></td>
+					</tr>
+					<tr>
+						<td class="text-left"><strong>{{ __("Total") }}</strong></td>
+						{% for (var m = 0; m < month_cols.length; m++) { %}
+							<td class="text-right"><strong>{{ (row["savings_total_" + month_cols[m]] || 0).toFixed(2) }}</strong></td>
+						{% } %}
+						<td class="text-right"><strong>{{ (row.total_savings || 0).toFixed(2) }}</strong></td>
+					</tr>
+				</tbody>
+			</table>
+			</div>
+		</div>
+
+		<!-- Summary Section -->
+		<div class="summary-section" style="margin-bottom: 20px;">
+			<div class="summary-container">
+				<div>
+					<div class="summary-field">
+						<span class="summary-label">{{ __("Qualifying amt:") }}</span>
+						<span class="summary-value">{{ (row.qualifying_amt || 0).toFixed(2) }}</span>
+					</div>
+				</div>
+				<div>
+					<div class="summary-field">
+						<span class="summary-label">{{ __("Taxable income:") }}</span>
+						<span class="summary-value">{{ (row.taxable_income || 0).toFixed(2) }}</span>
+					</div>
+				</div>
+				<div></div>
+				<div>
+					<div class="summary-field">
+						<span class="summary-label">{{ __("Tax payable:") }}</span>
+						<span class="summary-value">{{ (row.tax_payable || 0).toFixed(2) }}</span>
+					</div>
+				</div>
+				<div>
+					<div class="summary-field">
+						<span class="summary-label">{{ __("Itax paid:") }}</span>
+						<span class="summary-value">{{ (row.itax_paid || 0).toFixed(2) }}</span>
+					</div>
+				</div>
+				<div></div>
+				<div>
+					<div class="summary-field">
+						<span class="summary-label">{{ __("Bal to pay:") }}</span>
+						<span class="summary-value">{{ (row.bal_to_pay || 0).toFixed(2) }}</span>
+					</div>
+				</div>
+				<div>
+					<div class="summary-field">
+						<span class="summary-label">{{ __("New Mly Dedn:") }}</span>
+						<span class="summary-value">{{ (row.new_mly_dedn || 0).toFixed(2) }}</span>
+					</div>
+				</div>
+				<div></div>
+			</div>
+		</div>
+		
+		<!-- Spacer after each employee -->
+		{% if (r < data.length - 1) { %}
+			<div class="employee-spacer"></div>
+		{% } %}
+	{% } %}
+</div>
+

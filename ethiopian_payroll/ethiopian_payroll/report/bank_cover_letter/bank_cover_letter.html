@@ -1,0 +1,116 @@
+<div class="container" style="font-size: 11px; color: #111; padding: 18px 14px; max-width: 720px;">
+	<style>
+		.letter-body {
+			line-height: 1.5;
+		}
+		.letter-heading {
+			text-align: center;
+			font-weight: 800;
+			font-size: 22px;
+			text-transform: uppercase;
+			letter-spacing: 0.5px;
+		}
+		.letter-subline {
+			text-align: center;
+			font-size: 13px;
+			margin-top: 4px;
+		}
+		.section-line {
+			border-top: 2px solid #111;
+			margin: 12px 0 16px 0;
+		}
+		.letter-table {
+			width: 100%;
+			margin-top: 18px;
+			border: 1px solid #111;
+			border-collapse: collapse;
+			font-size: 11px;
+		}
+		.letter-table th,
+		.letter-table td {
+			border: 1px solid #111;
+			padding: 6px 8px;
+			text-align: center;
+		}
+		.letter-table th {
+			background: #f3f4f6;
+			font-weight: 700;
+		}
+	</style>
+
+	<div class="letter-heading">
+		{{ filters.company || __("Company") }}
+	</div>
+	<div class="letter-subline">
+		{{ filters.company_address || "" }}
+	</div>
+	<div class="section-line"></div>
+
+	<div class="row letter-body">
+		<div class="col-xs-6">
+			<strong>{{ __("Ref:") }}</strong>
+		</div>
+		<div class="col-xs-6 text-right">
+			<strong>{{ __("Dated:") }}</strong> {{ frappe.datetime.str_to_user(frappe.datetime.get_today()) }}
+		</div>
+	</div>
+
+	<div class="letter-body" style="margin-top: 18px;">
+		<div>{{ __("To") }}</div>
+		<div>{{ __("The Branch Manager,") }}</div>
+		<div>{{ filters.bank_name || __("BANK") }}</div>
+		<div>{{ filters.bank_address || "" }}</div>
+	</div>
+
+	<div class="letter-body" style="margin-top: 18px;">
+		<div>{{ __("Dear Sir,") }}</div>
+	</div>
+
+	{% var total_amount = 0; %}
+	{% for (var r = 0; r < data.length; r++) { %}
+		{% var row = data[r]; %}
+		{% var val = row.amount || 0; %}
+		{% total_amount += val; %}
+	{% } %}
+	{% var employee_count = data.length || 0; %}
+	{% 
+		var money_in_words_fn = null;
+		if (frappe && frappe.utils) {
+			if (typeof frappe.utils.money_in_words === "function") {
+				money_in_words_fn = frappe.utils.money_in_words;
+			} else if (frappe.utils.data && typeof frappe.utils.data.money_in_words === "function") {
+				money_in_words_fn = frappe.utils.data.money_in_words;
+			}
+		}
+		var amount_in_words = money_in_words_fn ? money_in_words_fn(total_amount) : "";
+	%}
+
+	<div class="letter-body" style="margin-top: 18px;">
+		<div>
+			{{ __("Enclosed herewith please find salary details of") }} {{ employee_count }}
+			{{ __("employees and an account payee cheque for Rs.") }} {{ fmt_money(total_amount, null, 2) }}
+			{{ __(" (In Words)") }} {{ amount_in_words }}
+			{{ __("towards salary of") }} {{ filters.month_label || __("the selected period") }}.
+		</div>
+	</div>
+
+	<div class="letter-body" style="margin-top: 18px; font-weight: 700; text-align: center; text-decoration: underline;">
+		{{ filters.period_title || __("Salary for the selected period") }}
+	</div>
+
+	<div class="letter-body" style="margin-top: 18px;">
+		<div><strong>{{ __("Cheque No.:") }}</strong> {{ filters.cheque_no || "________" }}</div>
+		<div><strong>{{ __("Cheque Dated:") }}</strong> {% if (filters.cheque_date) { %} {{ frappe.datetime.str_to_user(filters.cheque_date) }} {% } else { %} ________ {% } %}</div>
+		<div><strong>{{ __("Amount:") }}</strong> {{ fmt_money(total_amount, null, 2) }} <strong>{{ __("Amount (In Words):") }}</strong> {{ amount_in_words }}</div>
+	</div>
+
+	<div class="letter-body" style="margin-top: 28px;">
+		<div>{{ __("Kindly do the needful at your end.") }}</div>
+	</div>
+
+	<div class="letter-body" style="margin-top: 40px;">
+		<div>{{ __("Yours Truly,") }}</div>
+		<div style="margin-top: 28px;">{{ filters.company || "" }}</div>
+	</div>
+</div>
+

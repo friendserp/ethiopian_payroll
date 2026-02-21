@@ -1,0 +1,222 @@
+<div class="salary-summary-print" style="font-size: 9px; color: #111; padding: 8px 12px; line-height: 1.4;">
+	<style>
+		.salary-summary-print {
+			font-family: "Helvetica", "Arial", sans-serif;
+		}
+		.salary-summary-header {
+			text-align: center;
+			margin-bottom: 12px;
+		}
+		.salary-summary-header .company {
+			text-transform: uppercase;
+			font-size: 16px;
+			font-weight: 700;
+			margin-bottom: 4px;
+		}
+		.salary-summary-header .title {
+			font-size: 14px;
+			font-weight: 700;
+			margin-bottom: 2px;
+		}
+		.salary-summary-header .period {
+			font-size: 10px;
+		}
+		.salary-summary-table {
+			width: 100%;
+			border-collapse: collapse;
+			table-layout: auto;
+		}
+		.salary-summary-table th,
+		.salary-summary-table td {
+			border: 1px solid #a5a5a5;
+			padding: 4px 6px;
+			font-size: 9px;
+			vertical-align: middle;
+			text-align: center;
+			word-break: normal;
+		}
+		.salary-summary-table th {
+			background: #f5f5f5;
+			font-weight: 600;
+			white-space: nowrap;
+		}
+		.salary-summary-table td.text-right {
+			text-align: right;
+		}
+		.salary-summary-table tfoot td {
+			font-weight: 700;
+			background: #f9f9f9;
+		}
+		.salary-summary-footer {
+			margin-top: 18px;
+			display: flex;
+			justify-content: flex-start;
+		}
+		.salary-summary-card {
+			border: 2px solid #333;
+			min-width: 320px;
+			padding: 10px 14px;
+		}
+		.salary-summary-card .row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 6px;
+			font-size: 11px;
+			font-weight: 600;
+		}
+		.salary-summary-card .row.total {
+			margin-top: 8px;
+			padding-top: 6px;
+			border-top: 2px solid #333;
+			font-size: 14px;
+			font-weight: 800;
+		}
+		.salary-signatures {
+			margin-top: 28px;
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 24px;
+			align-items: center;
+		}
+		.salary-signatures .sig-line {
+			border-top: 1px solid #555;
+			height: 2px;
+			margin-bottom: 6px;
+		}
+		.salary-signatures .sig-label {
+			text-align: center;
+			font-weight: 700;
+			font-size: 11px;
+		}
+	</style>
+
+	<div class="salary-summary-header">
+		<div class="company">{{ filters.company || __("Company") }}</div>
+		<div class="title">{{ __("Salary Register") }}</div>
+		<div class="period">
+			{% if (filters.from_date && filters.to_date) { %}
+				{{ __("Period") }}: {{ frappe.datetime.str_to_user(filters.from_date) }} {{ __("to") }} {{ frappe.datetime.str_to_user(filters.to_date) }}
+			{% } else { %}
+				{{ frappe.datetime.str_to_user(frappe.datetime.get_today()) }}
+			{% } %}
+		</div>
+	</div>
+
+	{% var visible_columns = []; %}
+	{% for (var c = 0; c < columns.length; c++) { %}
+		{% var col = columns[c]; %}
+		{% if (!col.hidden && col._id !== "_check") { %}
+			{% visible_columns.push(col); %}
+		{% } %}
+	{% } %}
+
+	{% var totals = {}; %}
+	{% for (var i = 0; i < visible_columns.length; i++) { %}
+		{% var col = visible_columns[i]; %}
+		{% if (["Currency", "Float", "Int"].indexOf(col.fieldtype) !== -1) { %}
+			{% totals[col.fieldname || col.id] = 0; %}
+		{% } %}
+	{% } %}
+
+	<table class="salary-summary-table">
+		<thead>
+			<tr>
+				<th style="width: 24px;">#</th>
+				{% for (var i = 0; i < visible_columns.length; i++) { %}
+					{% var col = visible_columns[i]; %}
+					<th>{{ __(col.label || col.name || col.fieldname) }}</th>
+				{% } %}
+			</tr>
+		</thead>
+		<tbody>
+			{% for (var r = 0; r < data.length; r++) { %}
+				{% var row = data[r]; %}
+				<tr>
+					<td>{{ r + 1 }}</td>
+					{% for (var i = 0; i < visible_columns.length; i++) { %}
+						{% var col = visible_columns[i]; %}
+						{% var key = col.fieldname || col.id; %}
+						{% var val = row[key]; %}
+						{% var is_numeric = ["Currency", "Float", "Int"].indexOf(col.fieldtype) !== -1; %}
+						{% if (is_numeric) { %}
+							{% totals[key] += (val ? parseFloat(val) : 0); %}
+						{% } %}
+						<td class="{{ is_numeric ? 'text-right' : '' }}">
+							{% if (col.fieldtype === "Currency") { %}
+								{{ (val ? parseFloat(val) : 0).toFixed(2) }}
+							{% } else { %}
+								{{ val || "" }}
+							{% } %}
+						</td>
+					{% } %}
+				</tr>
+			{% } %}
+		</tbody>
+		{% if (data.length) { %}
+		<tfoot>
+			<tr>
+				<td class="text-right">{{ __("Total") }}</td>
+				{% for (var i = 0; i < visible_columns.length; i++) { %}
+					{% var col = visible_columns[i]; %}
+					{% var key = col.fieldname || col.id; %}
+					{% var is_numeric = ["Currency", "Float", "Int"].indexOf(col.fieldtype) !== -1; %}
+					<td class="{{ is_numeric ? 'text-right' : '' }}">
+						{% if (is_numeric) { %}
+							{% if (col.fieldtype === "Currency") { %}
+								{{ (totals[key] || 0).toFixed(2) }}
+							{% } else { %}
+								{{ totals[key] || 0 }}
+							{% } %}
+						{% } else { %}
+							&nbsp;
+						{% } %}
+					</td>
+				{% } %}
+			</tr>
+		</tfoot>
+		{% } %}
+	</table>
+
+	{% if (data.length) { %}
+		{% var total_employees = data.length; %}
+		{% var total_earnings = totals["gross_pay"] || 0; %}
+		{% var total_deductions = totals["total_deduction"] || 0; %}
+		{% var total_net_pay = totals["net_pay"] || 0; %}
+		<div class="salary-summary-footer">
+			<div class="salary-summary-card">
+				<div class="row">
+					<span>{{ __("Total Employees:") }}</span>
+					<span>{{ total_employees }}</span>
+				</div>
+				<div class="row">
+					<span>{{ __("Total Earnings:") }}</span>
+					<span>{{ (total_earnings || 0).toFixed(2) }}</span>
+				</div>
+				<div class="row">
+					<span>{{ __("Total Deductions:") }}</span>
+					<span>{{ (total_deductions || 0).toFixed(2) }}</span>
+				</div>
+				<div class="row total">
+					<span>{{ __("Total Net Pay:") }}</span>
+					<span>{{ (total_net_pay || 0).toFixed(2) }}</span>
+				</div>
+			</div>
+		</div>
+		<div class="salary-signatures">
+			<div>
+				<div class="sig-line"></div>
+				<div class="sig-label">{{ __("Prepared By") }}</div>
+			</div>
+			<div>
+				<div class="sig-line"></div>
+				<div class="sig-label">{{ __("Reviewed By") }}</div>
+			</div>
+			<div>
+				<div class="sig-line"></div>
+				<div class="sig-label">{{ __("Approved By") }}</div>
+			</div>
+		</div>
+	{% } %}
+</div>
+

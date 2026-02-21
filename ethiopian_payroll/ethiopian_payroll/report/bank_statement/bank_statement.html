@@ -1,0 +1,77 @@
+<div class="container" style="max-width: 900px; font-size: 12px; color: #111;">
+	<!-- Header -->
+	<div class="row" style="border: 2px solid #000; padding: 10px; margin-bottom: 16px;">
+		<div class="col-xs-12 text-center" style="font-weight: 700; text-transform: uppercase;">
+			{{ filters.company || __("Company") }}
+		</div>
+	</div>
+
+	<!-- Title -->
+	<div class="row" style="margin-bottom: 6px;">
+		<div class="col-xs-12" style="font-size: 13px;">
+			{{ __("Bank Statement for the month of") }}
+			{% if (filters.from_date && filters.to_date) { %}
+				{{ " " + __("From") + " " + frappe.datetime.str_to_user(filters.from_date) + " " + __("to") + " " + frappe.datetime.str_to_user(filters.to_date) }}
+			{% } %}
+			<span class="pull-right">
+				{{ __("Date") }}: {{ frappe.datetime.str_to_user(frappe.datetime.get_today()) }}
+			</span>
+		</div>
+	</div>
+
+	<!-- Bank Name -->
+	<div class="row" style="margin-bottom: 12px;">
+		<div class="col-xs-12" style="font-size: 16px; font-weight: 700; color: #0b3a8f;">
+			{{ filters.bank_name || __("Bank") }}
+		</div>
+	</div>
+
+	<!-- Table -->
+	<table class="table table-bordered" style="font-size: 12px;">
+		<thead>
+			<tr>
+				<th style="width: 40px;" class="text-center">{{ __("SL") }}</th>
+				<th style="width: 80px;" class="text-center">{{ __("Pers No") }}</th>
+				<th>{{ __("Employee") }}</th>
+				<th style="width: 160px;" class="text-center">{{ __("Bank Acc No") }}</th>
+				<th style="width: 120px;" class="text-right">{{ __("Amt Rs.") }}</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% var total = 0; %}
+			{% for (var i = 0; i < data.length; i++) { %}
+				{% var row = data[i]; %}
+				{% var amount = row.amount || 0; %}
+				{% total += amount; %}
+				<tr>
+					<td class="text-center">{{ row.idx || (i + 1) }}</td>
+					<td class="text-center">{{ row.employee || "" }}</td>
+					<td>{{ row.employee_name || "" }}</td>
+					<td class="text-center">{{ row.bank_account_no || "" }}</td>
+					<td class="text-right">{{ fmt_money(amount, null, 2) }}</td>
+				</tr>
+			{% } %}
+		</tbody>
+	</table>
+
+	<!-- Total -->
+	<div class="row" style="margin-top: 8px;">
+		<div class="col-xs-9 text-right" style="font-weight: 700; font-size: 13px;">
+			{{ __("Total") }}:
+		</div>
+		<div class="col-xs-3 text-right" style="border: 2px solid #0b3a8f; font-weight: 700; font-size: 13px;">
+			{{ fmt_money(total, null, 2) }}
+		</div>
+	</div>
+
+	<!-- Footer -->
+	<div class="row" style="margin-top: 60px; font-size: 12px;">
+		<div class="col-xs-6">
+			{{ __("Cheque No.") }}
+		</div>
+		<div class="col-xs-6 text-right" style="font-weight: 700;">
+			{{ __("Principal") }}
+		</div>
+	</div>
+</div>
+

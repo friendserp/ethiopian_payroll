@@ -88,6 +88,13 @@ app_license = "mit"
 # before_install = "ethiopian_payroll.install.before_install"
 # after_install = "ethiopian_payroll.install.after_install"
 
+# After Install hook to create pay matrices
+after_install = "ethiopian_payroll.ethiopian_payroll.api.create_matrices.after_install"
+
+# After Migrate hook to ensure matrices exist after updates
+after_migrate = "ethiopian_payroll.ethiopian_payroll.api.create_matrices.after_migrate"
+
+
 # Uninstallation
 # ------------
 
@@ -249,4 +256,3 @@ app_license = "mit"
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-

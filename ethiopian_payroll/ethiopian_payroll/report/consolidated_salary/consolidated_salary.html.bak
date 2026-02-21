@@ -1,0 +1,128 @@
+{%- if data and data|length > 0 -%}
+	{%- set first_row = data[0] -%}
+	{%- set meta = first_row._meta if first_row._meta else {} -%}
+	{%- set earnings = meta.earnings if meta.earnings else [] -%}
+	{%- set deductions = meta.deductions if meta.deductions else [] -%}
+	{%- set total_earnings = meta.total_earnings if meta.total_earnings else 0 -%}
+	{%- set total_deductions = meta.total_deductions if meta.total_deductions else 0 -%}
+	{%- set net_pay = meta.net_pay if meta.net_pay else 0 -%}
+	{%- set company = meta.company if meta.company else "" -%}
+	{%- set month = meta.month if meta.month else "" -%}
+	{%- set year = meta.year if meta.year else "" -%}
+	{%- set currency = meta.currency if meta.currency else "" -%}
+
+	{%- set company_name = "" -%}
+	{%- if company -%}
+		{%- set company_name = frappe.db.get_value("Company", company, "company_name") -%}
+	{%- endif -%}
+	{%- set month_name = month if month else "" -%}
+	{%- set period = month_name + " - " + year|string if month_name and year else "" -%}
+
+	<style>
+		.consolidated-salary {
+			font-family: Arial, sans-serif;
+			font-size: 12px;
+		}
+		.company-header {
+			text-align: center;
+			font-weight: bold;
+			font-size: 16px;
+			margin-bottom: 10px;
+		}
+		.report-title {
+			text-align: center;
+			font-weight: bold;
+			font-size: 14px;
+			margin-bottom: 20px;
+		}
+		.two-column-table {
+			width: 100%;
+			border-collapse: collapse;
+			margin-bottom: 20px;
+		}
+		.two-column-table th,
+		.two-column-table td {
+			border: 1px solid #000;
+			padding: 6px 8px;
+			text-align: left;
+		}
+		.two-column-table th {
+			background-color: #f0f0f0;
+			font-weight: bold;
+			text-align: center;
+		}
+		.earnings-column {
+			width: 50%;
+			vertical-align: top;
+		}
+		.deductions-column {
+			width: 50%;
+			vertical-align: top;
+		}
+		.amount-cell {
+			text-align: right;
+		}
+		.total-row {
+			font-weight: bold;
+			background-color: #f9f9f9;
+		}
+		.net-pay {
+			text-align: right;
+			font-weight: bold;
+			font-size: 14px;
+			margin-top: 10px;
+			padding-right: 20px;
+		}
+	</style>
+
+	<div class="consolidated-salary">
+		<div class="company-header">{{ company_name }}</div>
+		<div class="report-title">Consolidated Salary for the month of {{ period }}</div>
+
+		<table class="two-column-table">
+			<thead>
+				<tr>
+					<th class="earnings-column">Earning Head</th>
+					<th class="earnings-column">Amount Rs.</th>
+					<th class="deductions-column">Deduction Head</th>
+					<th class="deductions-column">Amount Rs.</th>
+				</tr>
+			</thead>
+			<tbody>
+				{%- set earnings_len = earnings|length if earnings else 0 -%}
+				{%- set deductions_len = deductions|length if deductions else 0 -%}
+				{%- set max_rows = [earnings_len, deductions_len]|max -%}
+				{%- for i in range(max_rows) -%}
+					<tr>
+						{%- if i < earnings_len -%}
+							<td>{{ earnings[i].name }}</td>
+							<td class="amount-cell">{{ frappe.utils.fmt_money(earnings[i].amount, currency=currency) }}</td>
+						{%- else -%}
+							<td></td>
+							<td></td>
+						{%- endif -%}
+						
+						{%- if i < deductions_len -%}
+							<td>{{ deductions[i].name }}</td>
+							<td class="amount-cell">{{ frappe.utils.fmt_money(deductions[i].amount, currency=currency) }}</td>
+						{%- else -%}
+							<td></td>
+							<td></td>
+						{%- endif -%}
+					</tr>
+				{%- endfor -%}
+				
+				<tr class="total-row">
+					<td><strong>Total Earnings:</strong></td>
+					<td class="amount-cell"><strong>{{ frappe.utils.fmt_money(total_earnings, currency=currency) }}</strong></td>
+					<td><strong>Total Deductions:</strong></td>
+					<td class="amount-cell"><strong>{{ frappe.utils.fmt_money(total_deductions, currency=currency) }}</strong></td>
+				</tr>
+			</tbody>
+		</table>
+
+		<div class="net-pay">Net Pay: {{ frappe.utils.fmt_money(net_pay, currency=currency) }}</div>
+	</div>
+{%- else -%}
+	<div>No data available</div>
+{%- endif -%}

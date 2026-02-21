@@ -1,0 +1,135 @@
+<div class="pf-report-print" style="font-size: 9px; color: #111; padding: 8px 12px; line-height: 1.4;">
+	<style>
+		.pf-report-print {
+			font-family: "Helvetica", "Arial", sans-serif;
+		}
+		.pf-report-header {
+			text-align: center;
+			margin-bottom: 12px;
+		}
+		.pf-report-header .company {
+			text-transform: uppercase;
+			font-size: 16px;
+			font-weight: 700;
+			margin-bottom: 4px;
+		}
+		.pf-report-header .title {
+			font-size: 14px;
+			font-weight: 700;
+			margin-bottom: 2px;
+		}
+		.pf-report-header .period {
+			font-size: 10px;
+		}
+		.pf-report-table {
+			width: 100%;
+			border-collapse: collapse;
+			table-layout: auto;
+		}
+		.pf-report-table th,
+		.pf-report-table td {
+			border: 1px solid #a5a5a5;
+			padding: 5px 6px;
+			font-size: 9px;
+			vertical-align: middle;
+			text-align: center;
+			word-break: break-word;
+		}
+		.pf-report-table th {
+			background: #f5f5f5;
+			font-weight: 600;
+			white-space: nowrap;
+		}
+		.pf-report-table td.text-right {
+			text-align: right;
+		}
+		.pf-report-table td.text-left {
+			text-align: left;
+		}
+		.pf-report-table tfoot td {
+			font-weight: 700;
+			background: #f9f9f9;
+		}
+	</style>
+
+	<div class="pf-report-header">
+		<div class="company">{{ filters.company || __("Company") }}</div>
+		<div class="title">{{ __("PF Report") }}</div>
+		<div class="period">
+			{% if (filters.from_date && filters.to_date) { %}
+				{{ __("Period") }}: {{ frappe.datetime.str_to_user(filters.from_date) }} {{ __("to") }} {{ frappe.datetime.str_to_user(filters.to_date) }}
+			{% } else { %}
+				{{ frappe.datetime.str_to_user(frappe.datetime.get_today()) }}
+			{% } %}
+		</div>
+	</div>
+
+	{% var visible_columns = []; %}
+	{% for (var c = 0; c < columns.length; c++) { %}
+		{% var col = columns[c]; %}
+		{% if (!col.hidden && col._id !== "_check") { %}
+			{% visible_columns.push(col); %}
+		{% } %}
+	{% } %}
+
+	{% var totals = {}; %}
+	{% for (var i = 0; i < visible_columns.length; i++) { %}
+		{% var col = visible_columns[i]; %}
+		{% if (["Currency", "Float", "Int"].indexOf(col.fieldtype) !== -1) { %}
+			{% totals[col.fieldname || col.id] = 0; %}
+		{% } %}
+	{% } %}
+
+	<table class="pf-report-table">
+		<thead>
+			<tr>
+				{% for (var i = 0; i < visible_columns.length; i++) { %}
+					{% var col = visible_columns[i]; %}
+					<th>{{ __(col.label || col.name || col.fieldname) }}</th>
+				{% } %}
+			</tr>
+		</thead>
+		<tbody>
+			{% for (var r = 0; r < data.length; r++) { %}
+				{% var row = data[r]; %}
+				<tr>
+					{% for (var i = 0; i < visible_columns.length; i++) { %}
+						{% var col = visible_columns[i]; %}
+						{% var key = col.fieldname || col.id; %}
+						{% var val = row[key]; %}
+						{% var is_numeric = ["Currency", "Float", "Int"].indexOf(col.fieldtype) !== -1; %}
+						{% if (is_numeric) { %}
+							{% totals[key] += (val ? parseFloat(val) : 0); %}
+						{% } %}
+						<td class="{{ is_numeric ? 'text-right' : (col.fieldname === 'name' ? 'text-left' : '') }}">
+							{% if (col.fieldtype === "Currency") { %}
+								{{ (val || 0).toFixed(2) }}
+							{% } else { %}
+								{{ val || "" }}
+							{% } %}
+						</td>
+					{% } %}
+				</tr>
+			{% } %}
+		</tbody>
+		{% if (data.length) { %}
+		<tfoot>
+			<tr>
+				{% for (var i = 0; i < visible_columns.length; i++) { %}
+					{% var col = visible_columns[i]; %}
+					{% var key = col.fieldname || col.id; %}
+					{% var is_numeric = ["Currency", "Float", "Int"].indexOf(col.fieldtype) !== -1; %}
+					<td class="{{ is_numeric ? 'text-right' : '' }}">
+						{% if (is_numeric) { %}
+							{{ (totals[key] || 0).toFixed(2) }}
+						{% } else { %}
+							{{ __("Total") }}
+						{% } %}
+					</td>
+				{% } %}
+			</tr>
+		</tfoot>
+		{% } %}
+	</table>
+</div>
+
