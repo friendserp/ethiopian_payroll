@@ -1,0 +1,223 @@
+<div class="mr-sq-comparison-print" style="font-size: 9px; color: #111; padding: 8px 12px; line-height: 1.3; max-width: 1200px;">
+	<style>
+		.mr-sq-comparison-print {
+			font-family: "Helvetica", "Arial", sans-serif;
+		}
+		table {
+			border-collapse: collapse;
+			width: 100%;
+		}
+		th, td {
+			border: 1px solid #000;
+			padding: 4px 6px;
+		}
+		th {
+			background-color: #f0f0f0;
+			font-weight: 600;
+		}
+		.text-right {
+			text-align: right;
+		}
+		.text-center {
+			text-align: center;
+		}
+		.text-left {
+			text-align: left;
+		}
+		.footer-row {
+			margin-top: 30px;
+			display: flex;
+			justify-content: space-between;
+		}
+		.footer-cell {
+			width: 30%;
+		}
+		.signature-line {
+			border-bottom: 1px solid #000;
+			margin-top: 5px;
+			width: 100%;
+		}
+		.bg-light {
+			background-color: #f5f5f5;
+		}
+		.bg-dark {
+			background-color: #f0f0f0;
+		}
+	</style>
+
+	<%
+		# Get unique suppliers
+		suppliers = []
+		items = {}
+		itemList = []
+		totalBeforeVAT = 0
+		vatRate = 0.15
+		withholdingRate = 0.03
+		
+		if data and len(data) > 0:
+			for row in data:
+				if row.get('supplier') and row.get('supplier') not in suppliers:
+					suppliers.append(row.get('supplier'))
+			
+			# Group by item
+			for row in data:
+				if row.get('item_code') and row.get('item_code') != "":
+					if row.get('item_code') not in items:
+						items[row.get('item_code')] = {
+							'description': row.get('description'),
+							'uom': row.get('uom'),
+							'qty': row.get('qty'),
+							'suppliers': {}
+						}
+						itemList.append(row.get('item_code'))
+			
+			# Fill supplier data
+			for row in data:
+				if row.get('supplier'):
+					for itemCode in itemList:
+						if items[itemCode]['description'] == row.get('description') or row.get('item_code') == itemCode:
+							items[itemCode]['suppliers'][row.get('supplier')] = {
+								'unit_price': row.get('base_rate') or row.get('rate') or 0,
+								'total_price': row.get('base_amount') or row.get('amount') or 0,
+								'is_winner': row.get('is_winner') or 0
+							}
+			
+			# Calculate totals for winners
+			for row in data:
+				if row.get('is_winner') == 1 and row.get('base_amount'):
+					totalBeforeVAT += row.get('base_amount')
+			
+			vatAmount = totalBeforeVAT * vatRate
+			totalWithVAT = totalBeforeVAT + vatAmount
+			withholdingAmount = totalBeforeVAT * withholdingRate
+			netPay = totalWithVAT - withholdingAmount
+	%>
+
+	<!-- Header -->
+	<div style="margin-bottom: 20px;">
+		<h2 style="text-align: center; margin-bottom: 5px;">Material Request Supplier Quotation Comparison</h2>
+		<h4 style="text-align: center; margin-top: 0; color: #666;">{{ frappe.utils.getdate(frappe.datetime.get_today()) }}</h4>
+		<p style="text-align: center; margin: 0;">MR: {{ filters.material_request }}</p>
+	</div>
+
+	<!-- Main Table -->
+	{% if data and data|length %}
+	<table>
+		<thead>
+			<tr>
+				<th rowspan="2" style="width: 5%;">No.</th>
+				<th rowspan="2" style="width: 20%;">Description</th>
+				<th rowspan="2" style="width: 8%;">Unit Of Meas.</th>
+				<th rowspan="2" style="width: 8%;">Qty</th>
+				<th colspan="{{ suppliers|length * 2 }}" style="text-align: center;">Supplier Name</th>
+				<th rowspan="2" style="width: 8%;">Selected</th>
+				<th colspan="2" style="width: 15%; text-align: center;">Total Amount</th>
+			</tr>
+			<tr>
+				{% for supplier in suppliers %}
+				<th colspan="2" style="text-align: center;">{{ supplier }}</th>
+				{% endfor %}
+				<th style="font-size: 8px;">Unit Price</th>
+				<th style="font-size: 8px;">Total Price</th>
+			</tr>
+			<tr>
+				<th colspan="4"></th>
+				{% for supplier in suppliers %}
+				<th style="font-size: 8px;">Unit Price</th>
+				<th style="font-size: 8px;">Total Price</th>
+				{% endfor %}
+				<th></th>
+				<th style="font-size: 8px;"></th>
+				<th style="font-size: 8px;"></th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for idx, itemCode in enumerate(itemList) %}
+				{% set item = items[itemCode] %}
+				{% set winnerForItem = None %}
+				{% set winnerPrice = 0 %}
+				{% set winnerTotal = 0 %}
+				
+				{% for supplier in suppliers %}
+					{% if item.suppliers.get(supplier) and item.suppliers[supplier].is_winner == 1 %}
+						{% set winnerForItem = supplier %}
+						{% set winnerPrice = item.suppliers[supplier].unit_price %}
+						{% set winnerTotal = item.suppliers[supplier].total_price %}
+					{% endif %}
+				{% endfor %}
+				
+				<tr>
+					<td class="text-center">{{ idx + 1 }}</td>
+					<td class="text-left">{{ item.description or '' }}</td>
+					<td class="text-center">{{ item.uom or '' }}</td>
+					<td class="text-right">{{ "%.2f"|format(item.qty|float) }}</td>
+					
+					{% for supplier in suppliers %}
+						{% set supplierData = item.suppliers.get(supplier, {}) %}
+						<td class="text-right">{{ "%.2f"|format(supplierData.unit_price|float) if supplierData.unit_price else '' }}</td>
+						<td class="text-right">{{ "%.2f"|format(supplierData.total_price|float) if supplierData.total_price else '' }}</td>
+					{% endfor %}
+					
+					<td class="text-center">{{ winnerForItem or '' }}</td>
+					<td class="text-right">{{ "%.2f"|format(winnerPrice|float) if winnerPrice else '' }}</td>
+					<td class="text-right">{{ "%.2f"|format(winnerTotal|float) if winnerTotal else '' }}</td>
+				</tr>
+			{% endfor %}
+			
+			<!-- Summary Rows -->
+			<tr>
+				<td colspan="{{ 4 + (suppliers|length * 2) + 3 }}" style="border: none; height: 10px;"></td>
+			</tr>
+			<tr class="bg-light" style="font-weight: bold;">
+				<td colspan="{{ 4 + (suppliers|length * 2) + 1 }}" class="text-right">Before Vat</td>
+				<td class="text-right"></td>
+				<td class="text-right">{{ "%.2f"|format(totalBeforeVAT|float) }}</td>
+			</tr>
+			<tr>
+				<td colspan="{{ 4 + (suppliers|length * 2) + 1 }}" class="text-right">VAT 15%</td>
+				<td class="text-right"></td>
+				<td class="text-right">{{ "%.2f"|format(vatAmount|float) }}</td>
+			</tr>
+			<tr>
+				<td colspan="{{ 4 + (suppliers|length * 2) + 1 }}" class="text-right">With VAT</td>
+				<td class="text-right"></td>
+				<td class="text-right">{{ "%.2f"|format(totalWithVAT|float) }}</td>
+			</tr>
+			<tr>
+				<td colspan="{{ 4 + (suppliers|length * 2) + 1 }}" class="text-right">With hold 3%</td>
+				<td class="text-right"></td>
+				<td class="text-right">{{ "%.2f"|format(withholdingAmount|float) }}</td>
+			</tr>
+			<tr class="bg-dark" style="font-weight: bold;">
+				<td colspan="{{ 4 + (suppliers|length * 2) + 1 }}" class="text-right">Net Pay</td>
+				<td class="text-right"></td>
+				<td class="text-right">{{ "%.2f"|format(netPay|float) }}</td>
+			</tr>
+		</tbody>
+	</table>
+	{% else %}
+		<p style="text-align: center; color: #999;">No data to display</p>
+	{% endif %}
+
+	<!-- Signature Section -->
+	<div class="footer-row">
+		<div class="footer-cell">
+			<p style="margin-bottom: 5px;">Prepared ______</p>
+			<div class="signature-line"></div>
+		</div>
+		<div class="footer-cell">
+			<p style="margin-bottom: 5px;">Comittee Council/ By ______</p>
+			<div class="signature-line"></div>
+		</div>
+		<div class="footer-cell">
+			<p style="margin-bottom: 5px;">Approved By ______</p>
+			<div class="signature-line"></div>
+		</div>
+	</div>
+
+	<!-- Footer Note -->
+	<div style="margin-top: 20px; text-align: center; font-size: 8px; color: #999;">
+		<p>Please Make Sure That, This is Correct Issue Before Use</p>
+		<p>Page 1 of 1</p>
+	</div>
+</div>
