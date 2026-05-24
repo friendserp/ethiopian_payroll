@@ -1,55 +1,78 @@
 {
  "actions": [],
  "allow_rename": 1,
- "autoname": "format:BULK-ADDITIONAL-SALARY-{YY}-{MM}-{DD}-{##}",
- "creation": "2025-12-09 12:59:07.654934",
+ "autoname": "naming_series:",
+ "creation": "2026-04-05 20:39:45.788230",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "company",
-  "payroll_date",
-  "charges_section",
-  "charges"
+  "section_break_opsf",
+  "amended_from",
+  "naming_series",
+  "date",
+  "column_break_uxex",
+  "project",
+  "section_break_tyst",
+  "items"
  ],
  "fields": [
   {
-   "fieldname": "company",
+   "fieldname": "section_break_opsf",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "amended_from",
    "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Company",
-   "options": "Company",
-   "reqd": 1
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Bulk Additional Salary",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
   },
   {
-   "fieldname": "payroll_date",
+   "fieldname": "date",
    "fieldtype": "Date",
-   "in_list_view": 1,
-   "label": "Payroll Date",
-   "reqd": 1
+   "label": "Date"
   },
   {
-   "fieldname": "charges_section",
-   "fieldtype": "Section Break",
-   "label": "Charges"
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Naming Series",
+   "options": "KLC-BAS-",
+   "read_only": 1
   },
   {
-   "allow_bulk_edit": 1,
-   "fieldname": "charges",
+   "fieldname": "column_break_uxex",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "project",
+   "fieldtype": "Link",
+   "label": "Project",
+   "options": "Project"
+  },
+  {
+   "fieldname": "section_break_tyst",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "items",
    "fieldtype": "Table",
-   "label": "Charges",
-   "options": "Bulk Additional Salary Item",
-   "reqd": 1
+   "label": "Items",
+   "options": "Bulk Additional Salary Detail"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
+ "is_submittable": 1,
  "links": [],
- "modified": "2025-12-11 00:50:20.009323",
+ "modified": "2026-05-07 17:17:11.756325",
  "modified_by": "Administrator",
  "module": "Ethiopian Payroll",
  "name": "Bulk Additional Salary",
- "naming_rule": "Expression",
- "owner": "lijsamuael@gmail.com",
+ "naming_rule": "By \"Naming Series\" field",
+ "owner": "Administrator",
  "permissions": [
   {
    "create": 1,
@@ -61,6 +84,20 @@
    "report": 1,
    "role": "System Manager",
    "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR User",
+   "share": 1,
+   "submit": 1,
    "write": 1
   }
  ],

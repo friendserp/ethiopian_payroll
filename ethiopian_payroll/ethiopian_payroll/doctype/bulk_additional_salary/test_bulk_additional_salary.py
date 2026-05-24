@@ -1,4 +1,4 @@
-# Copyright (c) 2025, Samuael Ketema and Contributors
+# Copyright (c) 2026, Friends ERP and Contributors
 # See license.txt
 
 # import frappe
