@@ -1,0 +1,214 @@
+<style>
+    @media print {
+        body {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .print-format {
+            padding: 0.15in;
+            margin: 0;
+            size: landscape;
+        }
+    }
+    @page {
+        size: landscape;
+        margin: 0.3in;
+    }
+    .payroll-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 7px;
+        page-break-inside: auto;
+    }
+    .payroll-table th {
+        border: 0.5px solid #000;
+        padding: 2px;
+        background-color: #f2f2f2;
+        font-weight: bold;
+        text-align: center;
+        vertical-align: middle;
+    }
+    .payroll-table td {
+        border: 0.5px solid #000;
+        padding: 2px;
+        vertical-align: top;
+    }
+    .payroll-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+    .sub-header {
+        font-size: 6.5px;
+        font-weight: normal;
+    }
+    .header-info {
+        margin: 5px 0 10px 0;
+        font-size: 9px;
+    }
+    .approvals {
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+    }
+    .approval-box {
+        text-align: center;
+        width: 30%;
+    }
+    .approval-line {
+        margin-top: 30px;
+        border-top: 1px solid #000;
+        width: 100%;
+        padding-top: 5px;
+    }
+    .total-row {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+</style>
+
+<div style="margin: 0 auto; padding: 0 20px 20px 20px; font-family: 'Times New Roman', Times, serif;">
+    <h3 style="text-align: center;">Payroll Summary</h3>
+    
+    <div class="header-info">
+        <strong>Company:</strong> {{ filters.company }} &nbsp;&nbsp;&nbsp;
+        {% if filters.project %}
+            <strong>Project:</strong> {{ filters.project }} &nbsp;&nbsp;&nbsp;
+        {% endif %}
+        <strong>From:</strong> {{ frappe.datetime.str_to_user(filters.from_date) }} &nbsp;&nbsp;&nbsp;
+        <strong>To:</strong> {{ frappe.datetime.str_to_user(filters.to_date) }}
+    </div>
+
+    <table class="payroll-table">
+        <thead>
+            <tr>
+                <th rowspan="2" style="width: 2%;">NO</th>
+                <th rowspan="2" style="width: 8%;">Name of Employees</th>
+                <th rowspan="2" style="width: 8%;">Job Title</th>
+                <th rowspan="2" style="width: 5%;">Basic Salary</th>
+                <th rowspan="2" style="width: 3%;">Working Days</th>
+                <th rowspan="2" style="width: 3%;">Perdiem Days</th>
+                <th rowspan="2" style="width: 5%;">Resp. Allow.</th>
+                <th rowspan="2" style="width: 5%;">Profe. Allow.</th>
+                <th rowspan="2" style="width: 5%;">Project Allow.</th>
+                <th rowspan="2" style="width: 5%;">Transp Allow. (Taxable)</th>
+                <th rowspan="2" style="width: 5%;">House Allow.</th>
+                <th rowspan="2" style="width: 5%;">Transp Allow. (Non Taxable)</th>
+                <th colspan="2" style="width: 6%;">Perdiem Taxable</th>
+                <th colspan="2" style="width: 6%;">Perdiem Non Taxable</th>
+                <th colspan="5" style="width: 12%;">Overtime</th>
+                <th rowspan="2" style="width: 5%;">Gross Earned</th>
+                <th rowspan="2" style="width: 5%;">Income Tax</th>
+                <th rowspan="2" style="width: 4%;">Pension 7%</th>
+                <th rowspan="2" style="width: 4%;">Pension 11%</th>
+                <th rowspan="2" style="width: 4%;">Other Deductions</th>
+                <th rowspan="2" style="width: 5%;">Total Deductions</th>
+                <th rowspan="2" style="width: 5%;">Net Pay</th>
+            </tr>
+            <tr>
+                <th class="sub-header">Rate</th>
+                <th class="sub-header">Payable</th>
+                <th class="sub-header">Rate</th>
+                <th class="sub-header">Payable</th>
+                <th class="sub-header">N.Hr 1.5</th>
+                <th class="sub-header">Ngt 1.75</th>
+                <th class="sub-header">Sun 2</th>
+                <th class="sub-header">H.D 2.5</th>
+                <th class="sub-header">Cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+                {% if not row.is_total_row %}
+                <tr>
+                    <td style="text-align: center;">{{ row.idx }}</td>
+                    <td>{{ row.employee_name }}</td>
+                    <td>{{ row.designation or "" }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.basic, "Currency") }}</td>
+                    <td style="text-align: center;">{{ row.working_days }}</td>
+                    <td style="text-align: center;">{{ row.perdiem_days or "-" }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.resp_allow, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.profe_allow, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.project_allow, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.transp_taxable, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.house_allow, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.transp_nontaxable, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.perdiem_taxable_rate, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.perdiem_taxable_payable, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.perdiem_nontaxable_rate, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.perdiem_nontaxable_payable, "Currency") }}</td>
+                    <td style="text-align: center;">{{ row.ot_normal_hr or "-" }}</td>
+                    <td style="text-align: center;">{{ row.ot_night_hr or "-" }}</td>
+                    <td style="text-align: center;">{{ row.ot_sunday_hr or "-" }}</td>
+                    <td style="text-align: center;">{{ row.ot_holiday_hr or "-" }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.ot_cost, "Currency") }}</td>
+                    <td style="text-align: right; font-weight: bold;">{{ frappe.format(row.gross_earned, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.income_tax, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.pension_7, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.pension_11, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.other_deductions, "Currency") }}</td>
+                    <td style="text-align: right; font-weight: bold;">{{ frappe.format(row.total_deductions, "Currency") }}</td>
+                    <td style="text-align: right; font-weight: bold;">{{ frappe.format(row.net_pay, "Currency") }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            {% for row in data %}
+                {% if row.is_total_row %}
+                <tr class="total-row">
+                    <td colspan="3" style="text-align: right;">GRAND TOTAL</td>
+                    <td style="text-align: right;">{{ frappe.format(row.basic, "Currency") }}</td>
+                    <td style="text-align: center;">{{ row.working_days }}</td>
+                    <td style="text-align: center;">{{ row.perdiem_days }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.resp_allow, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.profe_allow, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.project_allow, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.transp_taxable, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.house_allow, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.transp_nontaxable, "Currency") }}</td>
+                    <td></td>
+                    <td style="text-align: right;">{{ frappe.format(row.perdiem_taxable_payable, "Currency") }}</td>
+                    <td></td>
+                    <td style="text-align: right;">{{ frappe.format(row.perdiem_nontaxable_payable, "Currency") }}</td>
+                    <td style="text-align: center;">{{ row.ot_normal_hr }}</td>
+                    <td style="text-align: center;">{{ row.ot_night_hr }}</td>
+                    <td style="text-align: center;">{{ row.ot_sunday_hr }}</td>
+                    <td style="text-align: center;">{{ row.ot_holiday_hr }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.ot_cost, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.gross_earned, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.income_tax, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.pension_7, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.pension_11, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.other_deductions, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.total_deductions, "Currency") }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.net_pay, "Currency") }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </tfoot>
+    </table>
+
+    <div class="approvals">
+        <div class="approval-box">
+            <div class="approval-line">_________________</div>
+            <div><strong>Prepared by:</strong></div>
+            <div style="font-size: 7px;">Name & Signature</div>
+        </div>
+        <div class="approval-box">
+            <div class="approval-line">_________________</div>
+            <div><strong>Checked by:</strong></div>
+            <div style="font-size: 7px;">Name & Signature</div>
+        </div>
+        <div class="approval-box">
+            <div class="approval-line">_________________</div>
+            <div><strong>Approved by:</strong></div>
+            <div style="font-size: 7px;">Name & Signature</div>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 8px;">
+        <strong>Date:</strong> {{ frappe.datetime.nowdate() }}
+    </div>
+</div>
+

@@ -1,0 +1,83 @@
+<style>
+    .bank-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10px;
+    }
+    .bank-table th, .bank-table td {
+        border: 1px solid #000;
+        padding: 5px;
+        text-align: left;
+    }
+    .bank-table th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+    .total-row {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+    .header-info {
+        margin-bottom: 20px;
+        font-size: 12px;
+    }
+</style>
+
+<div style="padding: 20px; font-family: 'Times New Roman', Times, serif;">
+    <h3 style="text-align: center;">Bank Summary</h3>
+    
+    <div class="header-info">
+        <strong>Company:</strong> {{ filters.company }}<br>
+        {% if filters.project %}
+            <strong>Project:</strong> {{ filters.project }}<br>
+        {% endif %}
+        <strong>Period:</strong> {{ frappe.datetime.str_to_user(filters.from_date) }} to {{ frappe.datetime.str_to_user(filters.to_date) }}
+    </div>
+
+    <table class="bank-table">
+        <thead>
+            <tr>
+                <th style="width: 50px;">NO</th>
+                <th>Employee Name</th>
+                <th>Job Title</th>
+                <th>Bank Account Number</th>
+                <th style="text-align: right;">Net Pay</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+                {% if not row.is_total_row %}
+                <tr>
+                    <td>{{ row.idx }}</td>
+                    <td>{{ row.employee_name }}</td>
+                    <td>{{ row.designation }}</td>
+                    <td>{{ row.bank_account_no or "" }}</td>
+                    <td style="text-align: right;">{{ frappe.format(row.net_pay, "Currency") }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            {% for row in data %}
+                {% if row.is_total_row %}
+                <tr class="total-row">
+                    <td colspan="4" style="text-align: right;">GRAND TOTAL</td>
+                    <td style="text-align: right;">{{ frappe.format(row.net_pay, "Currency") }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </tfoot>
+    </table>
+    
+    <div style="margin-top: 50px; display: flex; justify-content: space-between;">
+        <div style="width: 45%; text-align: center;">
+            <div style="border-top: 1px solid #000; margin-bottom: 5px;"></div>
+            <strong>Prepared by</strong>
+        </div>
+        <div style="width: 45%; text-align: center;">
+            <div style="border-top: 1px solid #000; margin-bottom: 5px;"></div>
+            <strong>Approved by</strong>
+        </div>
+    </div>
+</div>
+

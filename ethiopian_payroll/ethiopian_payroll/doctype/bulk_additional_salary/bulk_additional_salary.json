@@ -66,8 +66,13 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
- "links": [],
- "modified": "2026-05-07 17:17:11.756325",
+ "links": [
+  {
+   "link_doctype": "Additional Salary",
+   "link_fieldname": "custom_bulk_additional_salary"
+  }
+ ],
+ "modified": "2026-06-08 18:26:52.028103",
  "modified_by": "Administrator",
  "module": "Ethiopian Payroll",
  "name": "Bulk Additional Salary",
